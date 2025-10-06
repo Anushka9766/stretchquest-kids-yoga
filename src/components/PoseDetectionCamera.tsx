@@ -29,7 +29,7 @@ export const PoseDetectionCamera = ({ targetPose, onPoseMatch }: PoseDetectionCa
       // Initialize MediaPipe Pose
       const pose = new Pose({
         locateFile: (file) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`;
         }
       });
 
