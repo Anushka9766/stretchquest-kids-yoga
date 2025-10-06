@@ -26,10 +26,13 @@ export const PoseDetectionCamera = ({ targetPose, onPoseMatch }: PoseDetectionCa
     const initializePoseDetection = async () => {
       if (!videoRef.current || !canvasRef.current) return;
 
-      // Initialize MediaPipe Pose
+      console.log("Initializing pose detection...");
+
+      // Initialize MediaPipe Pose with correct CDN version
       const pose = new Pose({
         locateFile: (file) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`;
+          console.log("Loading file:", file);
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4.1633559619/${file}`;
         }
       });
 
@@ -42,7 +45,10 @@ export const PoseDetectionCamera = ({ targetPose, onPoseMatch }: PoseDetectionCa
         minTrackingConfidence: 0.5
       });
 
+      console.log("Pose options set");
+
       pose.onResults((results: Results) => {
+        console.log("Pose results received", results);
         if (!canvasRef.current) return;
 
         const canvasCtx = canvasRef.current.getContext("2d");
@@ -52,6 +58,7 @@ export const PoseDetectionCamera = ({ targetPose, onPoseMatch }: PoseDetectionCa
         canvasCtx.save();
         canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         canvasCtx.drawImage(results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
+        console.log("Drew image on canvas");
 
         // Draw pose landmarks
         if (results.poseLandmarks) {
@@ -82,6 +89,7 @@ export const PoseDetectionCamera = ({ targetPose, onPoseMatch }: PoseDetectionCa
       poseRef.current = pose;
 
       // Initialize camera
+      console.log("Starting camera...");
       const camera = new Camera(videoRef.current, {
         onFrame: async () => {
           if (videoRef.current && poseRef.current) {
@@ -94,6 +102,7 @@ export const PoseDetectionCamera = ({ targetPose, onPoseMatch }: PoseDetectionCa
 
       cameraRef.current = camera;
       await camera.start();
+      console.log("Camera started successfully");
     };
 
     initializePoseDetection();
