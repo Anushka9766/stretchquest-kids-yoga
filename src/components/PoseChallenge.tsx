@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { YogaPose } from "@/data/yogaPoses";
 import { Star, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { YogaAvatar3D } from "@/components/YogaAvatar3D";
+import { PoseDetectionCamera } from "@/components/PoseDetectionCamera";
 
 interface PoseChallengeProps {
   pose: YogaPose;
@@ -15,13 +17,27 @@ interface PoseChallengeProps {
 export const PoseChallenge = ({ pose, onComplete, currentPose, totalPoses }: PoseChallengeProps) => {
   const [completed, setCompleted] = useState(false);
   const [showFunFact, setShowFunFact] = useState(false);
+  const [poseAccuracy, setPoseAccuracy] = useState(0);
+  const [bestAccuracy, setBestAccuracy] = useState(0);
+
+  const handlePoseMatch = (accuracy: number) => {
+    setPoseAccuracy(accuracy);
+    if (accuracy > bestAccuracy) {
+      setBestAccuracy(accuracy);
+    }
+    
+    // Auto-complete if accuracy is high enough
+    if (accuracy >= 80 && !completed) {
+      handleComplete();
+    }
+  };
 
   const handleComplete = () => {
     setCompleted(true);
     const stars = 3; // Always give 3 stars for encouragement!
     
     toast("Amazing job! 🌟", {
-      description: "You completed the pose perfectly!",
+      description: `You matched the pose with ${bestAccuracy}% accuracy!`,
     });
 
     // Show fun fact after completing
@@ -53,27 +69,42 @@ export const PoseChallenge = ({ pose, onComplete, currentPose, totalPoses }: Pos
         </div>
       </div>
 
-      <Card className="w-full max-w-2xl p-6 md:p-8 shadow-[0_8px_24px_-4px_hsl(270_70%_60%/0.3)] border-2 border-primary/20">
+      <Card className="w-full max-w-7xl p-6 md:p-8 shadow-[0_8px_24px_-4px_hsl(270_70%_60%/0.3)] border-2 border-primary/20">
         {/* Pose name */}
         <h2 className="text-4xl md:text-5xl font-black text-center mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           {pose.name}
         </h2>
 
-        {/* Pose image */}
-        <div className="mb-6 flex justify-center">
-          <div className={`relative ${completed ? "scale-110 transition-transform duration-500" : ""}`}>
-            <img
-              src={pose.image}
-              alt={pose.name}
-              className="w-64 h-64 md:w-80 md:h-80 object-contain rounded-2xl"
+        {/* 3D Avatar and Camera side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* 3D Animated Avatar */}
+          <div className="flex flex-col gap-2">
+            <h3 className="text-lg font-bold text-foreground text-center">Target Pose</h3>
+            <div className="h-[400px] rounded-xl overflow-hidden border-2 border-accent/30">
+              <YogaAvatar3D pose={pose.id} />
+            </div>
+          </div>
+
+          {/* Pose Detection Camera */}
+          <div className="h-[400px]">
+            <PoseDetectionCamera 
+              targetPose={pose.id} 
+              onPoseMatch={handlePoseMatch}
             />
-            {completed && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="w-20 h-20 text-secondary sparkle" />
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Accuracy indicator */}
+        {poseAccuracy > 0 && !completed && (
+          <div className="mb-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl p-4 text-center">
+            <p className="text-lg font-bold text-foreground">
+              Current Match: <span className={poseAccuracy >= 80 ? "text-green-500" : "text-amber-500"}>{poseAccuracy}%</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {poseAccuracy >= 80 ? "Perfect! Keep holding..." : "Keep adjusting your pose!"}
+            </p>
+          </div>
+        )}
 
         {/* Instructions */}
         {!completed && (
